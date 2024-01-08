@@ -6,10 +6,11 @@ const db = new sqlite3.Database('./Database/Books.sqlite');
 
 app.use(express.json());
 
-db.run('CREATE TABLE IF NOT EXISTS Books (id INTEGER PRIMARY KEY, title TEXT, author TEXT)');
+db.run(`CREATE TABLE IF NOT EXISTS books (
+  id INTEGER PRIMARY KEY, title TEXT, author TEXT)`);
 
 app.get('/books', (req, res) => {
-    db.all('SELECT * FROM Books', (err, rows) => {
+    db.all('SELECT * FROM books', (err, rows) => {
         if (err) {
             res.status(500).send(err);
         } else {
@@ -19,7 +20,7 @@ app.get('/books', (req, res) => {
 });
 
 app.get('/books/:id', (req, res) => {
-    db.get('SELECT * FROM Books WHERE id = ?', req.params.id, (err, row) => {
+    db.get('SELECT * FROM books WHERE id = ?', req.params.id, (err, row) => {
         if (err) {
             res.status(500).send(err);
         } else  {
@@ -35,7 +36,7 @@ app.get('/books/:id', (req, res) => {
 
 app.post('/books', (req, res) => {
     const book = req.body;
-    db.run('INSERT INTO Books (title, author) VALUES (?, ?)', book.title, book.author, book.year, function (err) {
+    db.run('INSERT INTO books (title, author) VALUES (?, ?)', book.title, book.author,  function (err) {
         if (err) {
             res.status(500).send(err);
         } else {
@@ -48,7 +49,7 @@ app.post('/books', (req, res) => {
 
 app.put('/books/:id', (req, res) => {
     const book = req.body;
-    db.run('UPDATE Books SET title = ?, author = ?, WHERE id = ?', book.title, book.author, book.year, req.params.id, function (err) {
+    db.run('UPDATE books SET title = ?, author = ?, WHERE id = ?', book.title, book.author,  req.params.id, function (err) {
         if (err) {
             res.status(500).send(err);
         } else {
@@ -59,7 +60,7 @@ app.put('/books/:id', (req, res) => {
 );
 
 app.delete('/books/:id', (req, res) => {
-    db.run('DELETE FROM Books WHERE id = ?', req.params.id, function (err) {
+    db.run('DELETE FROM books WHERE id = ?', req.params.id, function (err) {
         if (err) {
             res.status(500).send(err);
         } else {
