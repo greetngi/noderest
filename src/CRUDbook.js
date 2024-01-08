@@ -6,12 +6,12 @@ const db = new sqlite3.Database('./Database/Books.sqlite');
 
 app.use(express.json());
 
-db.run('CREATE TABLE IF NOT EXISTS Books (id INTEGER PRIMARY KEY, title TEXT, author TEXT)');
+db.run('CREATE TABLE IF NOT EXISTS Books (id INTEGER PRIMARY KEY, title TEXT, author TEXT, year INTEGER)');
 
 app.get('/books', (req, res) => {
     db.all('SELECT * FROM Books', (err, rows) => {
         if (err) {
-            res.status(500).send(err);
+            res.status(500).send({ error: 'Database error' });
         } else {
             res.send(rows);
         }
@@ -19,27 +19,39 @@ app.get('/books', (req, res) => {
 });
 
 app.get('/books/:id', (req, res) => {
-    db.get('SELECT * FROM Books WHERE id = ?', req.params.id, (err, row) => {
+    db.get('SELECT * FROM Books WHERE id = ?', [req.params.id], (err, row) => {
         if (err) {
             res.status(500).send(err);
-        } else  {
-          if(!row) {
-            res.status(404).send({error: 'Book not found'});
-          } else {
+        } else if (row) {
             res.send(row);
-          }
+        } else {
+            res.status(404).send({ error: 'Book not found' });
         }
     });
 });
 
+app.post('/books', (req, res) => {
+    db.get('SELECT * FROM Books WHERE title = ?', req.body.title, (err, row) => {
+        if (err){
+            res.status(500).send(err);
+        } else {
+            if (!row) {
+                res.status(404).send('Book not found');
+            } else {
+                res.json(row);
+            }
+        }
+    }
+    );
+}
+);
 
 app.post('/books', (req, res) => {
     const book = req.body;
-    db.run('INSERT INTO Books (title, author) VALUES (?, ?)', book.title, book.author, book.year, function (err) {
+    db.run('INSERT INTO Books (title, author, year) VALUES (?, ?)', book.title, book.author, book.year, function (err) {
         if (err) {
             res.status(500).send(err);
         } else {
-          book.id = this.lastID;
             res.send(book);
         }
     });
@@ -48,7 +60,7 @@ app.post('/books', (req, res) => {
 
 app.put('/books/:id', (req, res) => {
     const book = req.body;
-    db.run('UPDATE Books SET title = ?, author = ?, WHERE id = ?', book.title, book.author, book.year, req.params.id, function (err) {
+    db.run('UPDATE Books SET title = ?, author = ?, year = ? WHERE id = ?', book.title, book.author, book.year, req.params.id, function (err) {
         if (err) {
             res.status(500).send(err);
         } else {
